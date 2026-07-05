@@ -33,6 +33,11 @@
   const charCounter   = document.querySelector(".char-counter");
   const modalEntryDate = document.getElementById("modal-entry-date");
 
+  const exportBtn     = document.getElementById("export-btn");
+  const themeCheckbox = document.getElementById("theme-checkbox");
+  const iconMoon      = document.getElementById("icon-moon");
+  const iconSun       = document.getElementById("icon-sun");
+
   // ── State ─────────────────────────────────────
   let allEntries  = [];
   let activeFilter = "All";
@@ -116,6 +121,7 @@
 
       show(filterBar);
       show(feedMeta);
+      show(exportBtn);
 
     } catch (err) {
       showError(err.message);
@@ -200,6 +206,14 @@
         openTweetModal(entries[idx]);
       });
     });
+
+    // Attach copy button listeners
+    entriesGrid.querySelectorAll(".copy-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.idx, 10);
+        copyToClipboard(entries[idx], btn);
+      });
+    });
   }
 
   function buildCard(entry, idx) {
@@ -216,12 +230,21 @@
             <span class="card-date">${escapeHTML(entry.date)}${ago ? ` · <span style="font-weight:400;opacity:0.7">${ago}</span>` : ""}</span>
             <div class="card-badges">${badges}</div>
           </div>
-          <button class="tweet-btn" data-idx="${idx}" title="Share on X (Twitter)" aria-label="Share ${escapeHTML(entry.date)} update on X">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-            Share
-          </button>
+          <div class="card-actions">
+            <button class="copy-btn" data-idx="${idx}" title="Copy to clipboard" aria-label="Copy ${escapeHTML(entry.date)} update to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Copy
+            </button>
+            <button class="tweet-btn" data-idx="${idx}" title="Share on X (Twitter)" aria-label="Share ${escapeHTML(entry.date)} update on X">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Share
+            </button>
+          </div>
         </div>
 
         <div class="card-content">
@@ -245,6 +268,80 @@
     hide(entriesGrid);
     show(errorState);
     errorMsg.textContent = msg;
+  }
+
+  // ── Copy to Clipboard ─────────────────────────
+  function copyToClipboard(entry, btn) {
+    const plain = stripHTML(entry.content_html);
+    const text = `BigQuery Release Notes – ${entry.date}\n\n${plain}\n\n${entry.link}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      const originalHTML = btn.innerHTML;
+      btn.classList.add("copied");
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+          <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Copied!
+      `;
+      setTimeout(() => {
+        btn.classList.remove("copied");
+        btn.innerHTML = originalHTML;
+      }, 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    });
+  }
+
+  // ── Export CSV ────────────────────────────────
+  function exportToCSV() {
+    const entries = getFilteredEntries();
+    if (!entries.length) return;
+
+    const headers = ["Date", "Categories", "Summary", "Link"];
+    const rows = entries.map(e => [
+      e.date,
+      e.categories.join(" | "),
+      stripHTML(e.content_html).replace(/\s+/g, " ").trim(),
+      e.link,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `bigquery-release-notes-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ── Theme toggle ──────────────────────────────
+  function applyTheme(isLight) {
+    document.body.classList.toggle("light-mode", isLight);
+    iconMoon.classList.toggle("hidden", isLight);
+    iconSun.classList.toggle("hidden", !isLight);
+    localStorage.setItem("bq-theme", isLight ? "light" : "dark");
+  }
+
+  // Restore saved theme on load
+  const savedTheme = localStorage.getItem("bq-theme");
+  if (savedTheme === "light") {
+    themeCheckbox.checked = true;
+    applyTheme(true);
   }
 
   // ── Modal ─────────────────────────────────────
@@ -295,6 +392,8 @@
 
   // ── Event wiring ──────────────────────────────
   refreshBtn.addEventListener("click", fetchFeed);
+  exportBtn.addEventListener("click", exportToCSV);
+  themeCheckbox.addEventListener("change", () => applyTheme(themeCheckbox.checked));
 
   searchInput.addEventListener("input", () => {
     if (allEntries.length) renderEntries();

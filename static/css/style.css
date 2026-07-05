@@ -1,5 +1,5 @@
 /* =============================================
-   DESIGN TOKENS
+   DESIGN TOKENS — DARK MODE (default)
    ============================================= */
 :root {
   --bg: #09090f;
@@ -8,6 +8,9 @@
   --bg-card-hover: rgba(255, 255, 255, 0.07);
   --border: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.16);
+  --header-bg: rgba(9, 9, 15, 0.7);
+  --filter-bg: rgba(9, 9, 15, 0.6);
+  --modal-bg: #14141f;
 
   --accent: #6366f1;          /* Indigo */
   --accent-2: #8b5cf6;        /* Violet */
@@ -34,6 +37,67 @@
 
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============================================
+   LIGHT MODE OVERRIDES
+   ============================================= */
+body.light-mode {
+  --bg: #f1f5f9;
+  --bg-2: #e2e8f0;
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.18);
+  --header-bg: rgba(241, 245, 249, 0.85);
+  --filter-bg: rgba(241, 245, 249, 0.75);
+  --modal-bg: #ffffff;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.1);
+}
+
+body.light-mode .orb-1 { opacity: 0.12; }
+body.light-mode .orb-2 { opacity: 0.1; }
+body.light-mode .orb-3 { opacity: 0.06; }
+
+body.light-mode .tweet-btn {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.04);
+}
+body.light-mode .tweet-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+body.light-mode .copy-btn {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.04);
+}
+body.light-mode .copy-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+body.light-mode .spinner {
+  border-color: rgba(0, 0, 0, 0.15);
+  border-top-color: var(--accent);
+}
+body.light-mode .card-content code {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+}
+body.light-mode .tweet-hint {
+  background: rgba(99, 102, 241, 0.06);
+}
+body.light-mode .tweet-textarea {
+  background: rgba(0, 0, 0, 0.03);
+}
+body.light-mode .btn-tweet {
+  background: linear-gradient(135deg, #1e1e2e 0%, #111 100%);
 }
 
 /* =============================================
@@ -99,10 +163,11 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(9, 9, 15, 0.7);
+  background: var(--header-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
+  transition: background var(--transition-slow);
 }
 
 .header-inner {
@@ -153,7 +218,84 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+}
+
+/* Export CSV button */
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border-radius: 50px;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--emerald-500);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.export-btn:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--emerald-500);
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+}
+
+/* Theme toggle */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.theme-icon {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  transition: color var(--transition);
+}
+.theme-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.theme-track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  display: block;
+}
+.theme-track:hover {
+  border-color: var(--border-hover);
+}
+.theme-checkbox:checked + .theme-track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.theme-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.theme-checkbox:checked + .theme-track .theme-thumb {
+  transform: translateX(18px);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 .feed-meta {
@@ -239,7 +381,7 @@ body {
   position: sticky;
   top: 68px;
   z-index: 90;
-  background: rgba(9, 9, 15, 0.6);
+  background: var(--filter-bg);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   transition: all var(--transition-slow);
@@ -473,8 +615,14 @@ body {
 .badge-announcement{ background: rgba(56, 189, 248, 0.15);  color: var(--sky-400); }
 .badge-default     { background: rgba(148, 163, 184, 0.1);  color: var(--text-secondary); }
 
-/* Tweet button */
-.tweet-btn {
+/* Card action buttons (Share + Copy) */
+.card-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tweet-btn, .copy-btn {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -492,9 +640,9 @@ body {
   flex-shrink: 0;
 }
 
-.tweet-btn svg { transition: transform var(--transition); }
+.tweet-btn svg, .copy-btn svg { transition: transform var(--transition); }
 
-.tweet-btn:hover {
+.tweet-btn:hover, .copy-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
   color: var(--text-primary);
@@ -502,7 +650,16 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.tweet-btn:hover svg { transform: scale(1.1); }
+.tweet-btn:hover svg, .copy-btn:hover svg { transform: scale(1.1); }
+
+/* Copy success state */
+.copy-btn.copied {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--emerald-500);
+  transform: none;
+  box-shadow: none;
+}
 
 /* Card content */
 .card-content {
@@ -598,7 +755,7 @@ body {
 }
 
 .modal-card {
-  background: #14141f;
+  background: var(--modal-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   width: 100%;
