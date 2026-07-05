@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BigQuery Release Notes</title>
+  <meta name="description" content="Browse the latest BigQuery release notes from Google Cloud and share updates on Twitter/X." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- Background orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">BigQuery Release Notes</h1>
+          <span class="brand-subtitle">Google Cloud · Live Feed</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div id="feed-meta" class="feed-meta hidden">
+          <span id="entry-count" class="entry-count"></span>
+          <span id="last-updated" class="last-updated"></span>
+        </div>
+        <button id="refresh-btn" class="refresh-btn" title="Refresh feed">
+          <svg id="refresh-icon" class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 3v5h-5M3 21v-5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div id="spinner" class="spinner hidden"></div>
+          <span id="refresh-label">Refresh</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filter bar -->
+  <div class="filter-bar hidden" id="filter-bar">
+    <div class="filter-inner">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+          <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input id="search-input" class="search-input" type="text" placeholder="Search release notes…" autocomplete="off" />
+      </div>
+      <div class="category-pills" id="category-pills"></div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <main class="main">
+    <!-- Empty / error state -->
+    <div id="empty-state" class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+          <path d="M32 20v14M32 40v2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="empty-title">No release notes loaded yet</p>
+      <p class="empty-sub">Click <strong>Refresh</strong> to fetch the latest BigQuery updates from Google Cloud.</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="error-state" class="error-state hidden">
+      <div class="empty-icon error-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+          <path d="M20 20l24 24M44 20L20 44" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="empty-title">Failed to load feed</p>
+      <p id="error-msg" class="empty-sub"></p>
+    </div>
+
+    <!-- Entries grid -->
+    <div id="entries-grid" class="entries-grid hidden"></div>
+  </main>
+
+  <!-- Tweet modal -->
+  <div id="tweet-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <div class="x-logo">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </div>
+          <h2 id="modal-title" class="modal-title">Share on X (Twitter)</h2>
+        </div>
+        <button id="modal-close" class="modal-close" aria-label="Close modal">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-entry-ref">
+          <span id="modal-entry-date" class="modal-entry-date"></span>
+        </div>
+        <label class="tweet-label" for="tweet-textarea">Compose your tweet</label>
+        <div class="tweet-editor-wrap">
+          <textarea id="tweet-textarea" class="tweet-textarea" maxlength="280" rows="5" placeholder="Write your tweet…"></textarea>
+          <div class="char-counter">
+            <span id="char-count">0</span><span class="char-max">/280</span>
+          </div>
+        </div>
+        <p class="tweet-hint">💡 Edit your tweet before sharing. The link will be appended automatically.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button id="modal-cancel" class="btn-secondary">Cancel</button>
+        <button id="tweet-submit" class="btn-tweet">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          Post to X
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
